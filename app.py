@@ -4,9 +4,11 @@ import plotly.express as px
 
 # Load data
 df = pd.read_csv("formatted_sales_data.csv")
+
+# Convert date column
 df["Date"] = pd.to_datetime(df["Date"])
 
-# Create app
+# Create Dash app
 app = Dash(__name__)
 
 app.layout = html.Div(
@@ -17,8 +19,9 @@ app.layout = html.Div(
     },
     children=[
 
+        # Header
         html.H1(
-            "🍬 Soul Foods Pink Morsel Sales Dashboard",
+            "Soul Foods Pink Morsel Sales Dashboard",
             style={
                 "textAlign": "center",
                 "color": "#2c3e50",
@@ -26,29 +29,30 @@ app.layout = html.Div(
             }
         ),
 
+        # Region Filter
         html.Div(
             [
                 html.Label(
                     "Select Region:",
                     style={
-                        "fontWeight": "bold",
-                        "fontSize": "18px"
+                        "fontSize": "18px",
+                        "fontWeight": "bold"
                     }
                 ),
 
                 dcc.RadioItems(
                     id="region-filter",
                     options=[
-                        {"label": " All", "value": "all"},
-                        {"label": " North", "value": "north"},
-                        {"label": " East", "value": "east"},
-                        {"label": " South", "value": "south"},
-                        {"label": " West", "value": "west"},
+                        {"label": "All", "value": "all"},
+                        {"label": "North", "value": "north"},
+                        {"label": "East", "value": "east"},
+                        {"label": "South", "value": "south"},
+                        {"label": "West", "value": "west"},
                     ],
                     value="all",
                     inline=True,
                     style={"marginTop": "10px"}
-                ),
+                )
             ],
             style={
                 "backgroundColor": "white",
@@ -59,9 +63,11 @@ app.layout = html.Div(
             }
         ),
 
+        # Graph
         dcc.Graph(id="sales-chart")
     ]
 )
+
 
 @app.callback(
     Output("sales-chart", "figure"),
@@ -72,7 +78,9 @@ def update_graph(selected_region):
     if selected_region == "all":
         filtered_df = df.copy()
     else:
-        filtered_df = df[df["Region"].str.lower() == selected_region]
+        filtered_df = df[
+            df["Region"].str.lower() == selected_region.lower()
+        ]
 
     sales_by_date = (
         filtered_df.groupby("Date")["Sales"]
@@ -85,16 +93,17 @@ def update_graph(selected_region):
         sales_by_date,
         x="Date",
         y="Sales",
-        title=f"Pink Morsel Sales - {selected_region.title()} Region"
+        title=f"Pink Morsel Sales - {selected_region.title()}"
     )
 
     fig.update_layout(
         template="plotly_white",
-        title_x=0.5,
         xaxis_title="Date",
-        yaxis_title="Sales ($)"
+        yaxis_title="Sales ($)",
+        title_x=0.5
     )
 
+    # Price increase marker
     fig.add_vline(
         x="2021-01-15",
         line_dash="dash",
@@ -104,6 +113,7 @@ def update_graph(selected_region):
     )
 
     return fig
+
 
 if __name__ == "__main__":
     app.run(debug=True)
